@@ -1,5 +1,8 @@
 import re
+import tkinter as tk
+import json
 from datetime import datetime
+from tkinter.ttk import Label, Entry
 def save_data(saved_person_dict,saved_person,type_dict):                # Eine Funktion, um die Eingaben in Dictionary zu speichern
     saved_person_dict[type_dict] = saved_person
     print("Ihre Eingabe wurde erfolgreich gespeichert\n")               # Eine Meldung, dass die Eingabe gespeichert ist
@@ -12,7 +15,7 @@ def choice_check(my_text):                                              # Eine F
         print("Ungültige Eingabe\n")                                    # Eine Fehlermeldung
         return None
 def is_valide(my_input,pattern_position):                                                               # Eine Funktion, um Eingaben zu prüfen
-    pattern = [r"^\s*[A-Za-zäöüÄÖÜß\s]{2,}\s*$",
+    pattern = [r"^\s*[A-Za-zäöüÄÖÜß\s]{1,}\s*$",
                r"^\s*([A-Za-zäöüÄÖÜß\s]+)\s+(\d+[A-Za-z]?)\s*,\s*(\d{4})\s+([A-Za-zäöüÄÖÜß\s]+)\s*$",
                r"^0\d{1,4}\s\d{6,8}$",
                r"^(?!.*\.\.)(?!\.)(?!.*\.$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"]            # Regex Liste für erlaubte zeichen
@@ -56,137 +59,230 @@ def show_data(my_list,my_type = None,my_filter = None):                         
 def change_data(my_data_dict,my_new_data,my_key):
     my_data_dict[my_key] = my_new_data
     print("Die Datei wurde erfolgreich geändert\n")
+def save_person(my_list,person_dict,my_lable):
+    my_list.append(person_dict)
 
-print("Mitarbeiter*innen und Besucher*innen Daten\n")    #Programm Name
-persons_list = []                                        # Eine Datenliste, um Dictionary zu speichern
-while True:                                              # Eine Menüliste zeigen
-    user_input = choice_check("Drücken Sie bitte 1, um neue Mitarbeiterdatei oder Besucherdatei hinzufügen\n"
-                              "Drücken Sie bitte 2, um die Personendaten zu zeigen\n"
-                              "Drücken Sie bitte 3, um Daten zu ändern\n"
-                              "Drücken Sie bitte 4, Programm zu schlissen\n")
-    match user_input:
-        case 1:                                                     # Erste Wahl (Eine neue Datei einfügen)
-            person_dict = {}                                        # Dictionary entleeren
-            while True:
-                while True:                                         # Meine Funktion aufrufen
-                    choice = choice_check("Mitarbeiter*inne drücken Sie bitte 1\nBesucher*innen drücken Sie bitte 2\n")
-                    if choice == 1:                                 # wenn, die erste Wahl
-                        person_dict["type"] ="Mitarbeiter*innen"    # Die Type in Dictionary als Mitarbeiter*innen setzen
-                        break
-                    elif choice == 2:                               # wenn, die zweite Wahl
-                        person_dict["type"] = "Besucher*innen"      # Die Type in Dictionary als Besucher*innen setzen
-                        break
-                while True:                                         # Wiederholen bis die erste Eingabe erfüllt ist
-                    name = input("Geben Sie bitte eine vollständige Name ein:\n").strip()
-                    if is_valide(name,0):                     # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                        name = name.title()                                 # Der erste Buchstabe als groß setzen
-                        save_data(person_dict, name, "name")       # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
-                        break
-                while True:                                                 # Wiederholen bis die Eingabe erfüllt ist
-                    address = input("Geben Sie bitte eine vollständige Adresse ein:\n"
-                                    "Muster (musterstraße 03, 3333 musterort)\n").strip()
-                    if is_valide(address,1):                                # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                        save_data(person_dict, address, "address")               # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
-                        break
+def add_button(my_frame,my_text,second_frame,my_row,my_column,my_pady,my_padx,my_sticky):
+    my_button = tk.Button(my_frame,text= my_text,command=lambda :change_frame(second_frame),
+                          font=('Arial', 18, 'bold'), relief="raised",bd=5)
+    my_button.grid(row=my_row,column=my_column,pady=my_pady,padx=my_padx,sticky=my_sticky)
+    return my_button
+def add_radiobutton(my_frame,my_text,my_choice,my_value,my_row ,my_column):
+    my_rbtn = tk.Radiobutton(my_frame, text=my_text,
+                             font=('Arial', 18, 'bold'), variable=my_choice, value=my_value)
+    my_rbtn.grid(row=my_row,column=my_column,pady=10,padx=10)
+    return my_rbtn
+def add_label(my_frame,my_text,my_row, my_column,my_pady,my_padx,my_sticky):
+    my_lable = Label(my_frame,text=my_text,font=("Arial",18,"bold"))
+    my_lable.grid(row=my_row,column=my_column,pady=my_pady,padx=my_padx,sticky=my_sticky)
+    return my_lable
+def add_text_feld(my_frame,my_row,my_column,my_pady,my_padx,my_sticky):
+    my_text_feld = Entry(my_frame,width = 65,font=("Arial",12))
+    my_text_feld.grid(row=my_row,column=my_column,pady=my_pady,padx=my_padx,sticky=my_sticky)
+    return my_text_feld
+def change_frame(my_frame):
+    my_frame.tkraise()
+
+def my_program():
+    persons_list = []
+    main_window = tk.Tk()
+    main_window.geometry("900x700")
+    main_window.grid_columnconfigure(0,weight=1)
+    main_window.title("Mitarbeiter*innen und Besucher*innen Daten")
+
+    main_frame = tk.Frame(main_window)
+    add_new_person_frame = tk.Frame(main_window)
+    show_frame = tk.Frame(main_window)
+    edit_frame = tk.Frame(main_window)
+    for frame in (main_frame,add_new_person_frame,show_frame,edit_frame):
+        frame.grid(row=0,column=0,sticky="nsew")
+
+    new_person_btn = add_button(main_frame, "Neue Person einfügen",add_new_person_frame, 0, 0, 10,15,"ew" )
+    show_btn = add_button(main_frame, "Personen Daten zeigen", show_frame, 1, 0, 10, 15, "ew")
+    edit_btn = add_button(main_frame, "Person Daten ändern", edit_frame, 2, 0, 10, 15, "ew")
+
+    type_choice = tk.IntVar()
+    type_choice.set(1)
+    employee_rbtn = add_radiobutton(add_new_person_frame, "Mitarbeiter*innen",
+                                    type_choice, 1, 0,0)
+    visitor_rbtn = add_radiobutton(add_new_person_frame, "Besucher*innen",
+                                   type_choice, 2, 0, 1)
+    txt_feld_dict ={}
+    for i  in range(1,7):
+        if i == 1:
+            text ="Vorname"
+            txt_key ="first_name_txt"
+        elif i == 2:
+            text = "Nachname"
+            txt_key ="family_name_txt"
+        elif i == 3:
+            text = "Adresse"
+            txt_key = "address_txt"
+        elif i == 4:
+            text = "Geburtsdatum"
+            txt_key = "birthday_txt"
+        elif  i == 5:
+            text = "Telefon"
+            txt_key = "phone_txt"
+        else:
+            text = "E-Mail"
+            txt_key = "email_txt"
+        add_label(add_new_person_frame,text, i,0,10,30,"w")
+        txt_feld = add_text_feld(add_new_person_frame,i,1,10,30,"w")
+        txt_feld_dict[txt_key] = txt_feld
+    error_lbl = add_label(add_new_person_frame,"",7,1,10,30,"w")
+    save_btn = add_button(add_new_person_frame,"Speichern",main_frame,
+                          7,0,20,30,"w")
+    cancel_btn = add_button(add_new_person_frame,"Abbrechen",main_frame,
+                            7,1,20,30,"w")
+    first_name = txt_feld_dict["first_name_txt"].cget()
+    if is_valide(first_name,0):
+        family_name = txt_feld_dict["family_name_txt"].cget()
+        if is_valide(family_name,0):
+            address = txt_feld_dict["address_txt"].cget()
+            if is_valide(address,1):
+                birthday = txt_feld_dict["birthday"].cget()
+                if is_valide_date(birthday)
+                    phone = txt_feld_dict["phone_txt"].cget()
+                    if is_valide(phone,2):
+                        email = txt_feld_dict["email"].cget()
+                        if is_valide(email,3):
+
+    change_frame(main_frame)
+    main_window.mainloop()
+def main():
+    my_program()
+    print("Mitarbeiter*innen und Besucher*innen Daten\n")    #Programm Name
+    persons_list = []                                        # Eine Datenliste, um Dictionary zu speichern
+    while True:                                              # Eine Menüliste zeigen
+        user_input = choice_check("Drücken Sie bitte 1, um neue Mitarbeiterdatei oder Besucherdatei hinzufügen\n"
+                                  "Drücken Sie bitte 2, um die Personendaten zu zeigen\n"
+                                  "Drücken Sie bitte 3, um Daten zu ändern\n"
+                                  "Drücken Sie bitte 4, Programm zu schlissen\n")
+        match user_input:
+            case 1:                                                     # Erste Wahl (Eine neue Datei einfügen)
+                person_dict = {}                                        # Dictionary entleeren
                 while True:
-                    birthday = input("Geben Sie bitte eine vollständige Geburtsdatum ein:\nMuster TT.MM.JJJJ\n").strip()
-                    if is_valide_date(birthday):                                   # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                        save_data(person_dict,birthday,"birthday")        # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
-                        break
-                while True:
-                    phone = input("Geben Sie bitte eine Telefonnummer ein:\nMuster 0123 123456\n").strip()
-                    if is_valide(phone,2):                          # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                        save_data(person_dict,phone,"phone")             # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
-                        break
-                while True:
-                    email = input("Geben Sie bitte eine E-Mail Adresse ein:\nMuster: muster@gmail.com\n").strip()
-                    if is_valide(email,3):                                 # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                        save_data(person_dict,email,"email")                    # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
-                        break
-                persons_list.append(person_dict.copy())
-                print("Eine Mitarbeiter*innen Daten wurden erfolgreich gespeichert\n")              # Eine Meldung, wenn alle Eingaben gespeichert sind
-                user_input = choice_check("Drücken Sie bitte 1, um noch eine Mitarbeiterdaten wieder hinzufügen\n"
-                                          "Drücken Sie bitte andere Taste, um Die Menüliste wieder zu zeigen\n")
-                if user_input == 1:
-                    continue
-                else:
-                    break
-        case 2:
-            while True:                     # Wiederholen bis die Eingabe erfüllt ist
-                choice = choice_check("Mitarbeiter*innen drücken Sie bitte 1\n"         # Meine Funktion aufrufen, um die Eingabe zu prüfen und in Variable speichern
-                                      "Besucher*innen drücken Sie bitte 2\n"
-                                      "Filtern: Drücken Sie bitte 3\n")
-                if choice == 1:
-                    show_data(persons_list,"Mitarbeiter*innen")                 # Meine Funktion aufrufen, um die Daten zu zeigen
-                    break
-                elif choice == 2:
-                    show_data(persons_list,"Besucher*innen")                    # Meine Funktion aufrufen, um die Daten zu zeigen
-                    break
-                elif choice == 3:                                               # Meine Funktion aufrufen, um die Eingabe zu prüfen und in Variable speichern
-                    type_filter = choice_check("Mitarbeiter*innen : Drücken Sie bitte 1\nBesucher*innen : Drücken Sie bitte 2\n")
-                    person_type = "Mitarbeiter*innen" if type_filter ==1 else "Besucher*innen"      # Personen type nach Benutzerwahl setzen
-                    choice_filter = choice_check("Drücken Sie eine Nummer der folgenden Filter\n"
-                                                 "1.Name\n2.Adresse\n3.Geburtsdatum\n"              # meine Funktion aufrufen, um Filterwahl in Variable zu speichern
-                                                 "4.Telefonnummer\n5.E-Mail\n")
-                    filters = {1:"name",2:"address",3:"birthday",4:"phone",5:"email"}               # Ein Dictionary mit Integer Schlüssel, die meine Schlüssel erhalten
-                    user_filter = filters.get(choice_filter)
-                    if user_filter:
-                        show_data(persons_list,person_type,user_filter)                             # Meine Funktion aufrufen, um die Daten zu zeigen
-                        break
-                    else:
-                        print("Ungültige Eingabe\n")
+                    while True:                                         # Meine Funktion aufrufen
+                        choice = choice_check("Mitarbeiter*inne drücken Sie bitte 1\nBesucher*innen drücken Sie bitte 2\n")
+                        if choice == 1:                                 # wenn, die erste Wahl
+                            person_dict["type"] ="Mitarbeiter*innen"    # Die Type in Dictionary als Mitarbeiter*innen setzen
+                            break
+                        elif choice == 2:                               # wenn, die zweite Wahl
+                            person_dict["type"] = "Besucher*innen"      # Die Type in Dictionary als Besucher*innen setzen
+                            break
+                    while True:                                         # Wiederholen bis die erste Eingabe erfüllt ist
+                        name = input("Geben Sie bitte eine vollständige Name ein:\n").strip()
+                        if is_valide(name,0):                     # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                            name = name.title()                                 # Der erste Buchstabe als groß setzen
+                            save_data(person_dict, name, "name")       # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
+                            break
+                    while True:                                                 # Wiederholen bis die Eingabe erfüllt ist
+                        address = input("Geben Sie bitte eine vollständige Adresse ein:\n"
+                                        "Muster (musterstraße 03, 3333 musterort)\n").strip()
+                        if is_valide(address,1):                                # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                            save_data(person_dict, address, "address")               # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
+                            break
+                    while True:
+                        birthday = input("Geben Sie bitte eine vollständige Geburtsdatum ein:\nMuster TT.MM.JJJJ\n").strip()
+                        if is_valide_date(birthday):                                   # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                            save_data(person_dict,birthday,"birthday")        # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
+                            break
+                    while True:
+                        phone = input("Geben Sie bitte eine Telefonnummer ein:\nMuster 0123 123456\n").strip()
+                        if is_valide(phone,2):                          # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                            save_data(person_dict,phone,"phone")             # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
+                            break
+                    while True:
+                        email = input("Geben Sie bitte eine E-Mail Adresse ein:\nMuster: muster@gmail.com\n").strip()
+                        if is_valide(email,3):                                 # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                            save_data(person_dict,email,"email")                    # Meine Funktion aufrufen, um die Eingabe in dictionary zu speichern
+                            break
+                    persons_list.append(person_dict.copy())
+                    print("Eine Mitarbeiter*innen Daten wurden erfolgreich gespeichert\n")              # Eine Meldung, wenn alle Eingaben gespeichert sind
+                    user_input = choice_check("Drücken Sie bitte 1, um noch eine Mitarbeiterdaten wieder hinzufügen\n"
+                                              "Drücken Sie bitte andere Taste, um Die Menüliste wieder zu zeigen\n")
+                    if user_input == 1:
                         continue
-        case 3:                                                     # Daten ändern
-            while True:
-                change_key = input("Geben Sie der Name der Person, die Sie ihre Daten ändern möchten\n").strip().title()
-                if is_valide(change_key,0):                                                # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                    for person in persons_list:                                                         # Die Personen in der Liste Durchführen
-                        if person["name"] == change_key:                                                # die Eingabe mit gespeicherten Daten vergleichen
-                            print(f"Name: {person.get('name')}\nAdresse: {person.get('address')}\n"     # Die passende Datei zeigen
-                                  f"Geburtsdatum: {person.get('birthday')}\nTelefonnummer: {person.get('phone')}\n"
-                                  f"E-Mail: {person.get('email')}\n")
-                            choice_change = choice_check("Drücken Sie eine Nummer der folgenden Daten\n"
-                                                         "1.Name\n2.Adresse\n3.Geburtsdatum\n"          # Funktion aufrufen, um die Benutzerwahl zu prüfen und speichern
-                                                         "4.Telefonnummer\n5.E-Mail\n")
-                            match choice_change:
-                                case 1:
-                                    while True:
-                                        new_name = input("Geben Sie bitte eine vollständige Name ein:\n").strip()
-                                        if is_valide(new_name, 0):                      # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                                            name = new_name.title()                                  # Der erste Buchstabe als groß setzen
-                                            change_data(person,new_name,"name")
-                                            break
-                                case 2:
-                                    while True:
-                                        new_address = input("Geben Sie bitte eine vollständige Adresse ein:\n"
-                                                            "Muster (musterstraße 03, 3333 musterort)\n").strip()
-                                        if is_valide(new_address, 1):                           # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                                            change_data(person,new_address,"address")
-                                            break
-                                case 3:
-                                    while True:
-                                        new_birthday = input("Geben Sie bitte eine vollständige Geburtsdatum ein:\n"
-                                                             "Muster TT.MM.JJJJ\n").strip()
-                                        if is_valide_date(new_birthday):                                     # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                                            change_data(person, new_birthday, "birthday")
-                                            break
-                                case 4:
-                                    while True:
-                                        new_phone = input("Geben Sie bitte eine Telefonnummer ein:\nMuster 0123 123456\n").strip()
-                                        if is_valide(new_phone, 2):                            # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                                            change_data(person, new_phone, "phone")
-                                            break
-                                case 5:
-                                    while True:
-                                        new_email = input("Geben Sie bitte eine E-Mail Adresse ein:\nMuster: muster@gmail.com\n").strip()
-                                        if is_valide(new_email, 3):                           # Meine Funktion aufrufen, um die Eingabe zu prüfen
-                                            change_data(person, new_email, "email")
-                                            break
-                                case _:
-                                    print("Ungültige Eingabe\n")
-                                    continue
+                    else:
+                        break
+            case 2:
+                while True:                     # Wiederholen bis die Eingabe erfüllt ist
+                    choice = choice_check("Mitarbeiter*innen drücken Sie bitte 1\n"         # Meine Funktion aufrufen, um die Eingabe zu prüfen und in Variable speichern
+                                          "Besucher*innen drücken Sie bitte 2\n"
+                                          "Filtern: Drücken Sie bitte 3\n")
+                    if choice == 1:
+                        show_data(persons_list,"Mitarbeiter*innen")                 # Meine Funktion aufrufen, um die Daten zu zeigen
+                        break
+                    elif choice == 2:
+                        show_data(persons_list,"Besucher*innen")                    # Meine Funktion aufrufen, um die Daten zu zeigen
+                        break
+                    elif choice == 3:                                               # Meine Funktion aufrufen, um die Eingabe zu prüfen und in Variable speichern
+                        type_filter = choice_check("Mitarbeiter*innen : Drücken Sie bitte 1\nBesucher*innen : Drücken Sie bitte 2\n")
+                        person_type = "Mitarbeiter*innen" if type_filter ==1 else "Besucher*innen"      # Personen type nach Benutzerwahl setzen
+                        choice_filter = choice_check("Drücken Sie eine Nummer der folgenden Filter\n"
+                                                     "1.Name\n2.Adresse\n3.Geburtsdatum\n"              # meine Funktion aufrufen, um Filterwahl in Variable zu speichern
+                                                     "4.Telefonnummer\n5.E-Mail\n")
+                        filters = {1:"name",2:"address",3:"birthday",4:"phone",5:"email"}               # Ein Dictionary mit Integer Schlüssel, die meine Schlüssel erhalten
+                        user_filter = filters.get(choice_filter)
+                        if user_filter:
+                            show_data(persons_list,person_type,user_filter)                             # Meine Funktion aufrufen, um die Daten zu zeigen
+                            break
+                        else:
+                            print("Ungültige Eingabe\n")
+                            continue
+            case 3:                                                     # Daten ändern
+                while True:
+                    change_key = input("Geben Sie der Name der Person, die Sie ihre Daten ändern möchten\n").strip().title()
+                    if is_valide(change_key,0):                                                # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                        for person in persons_list:                                                         # Die Personen in der Liste Durchführen
+                            if person["name"] == change_key:                                                # die Eingabe mit gespeicherten Daten vergleichen
+                                print(f"Name: {person.get('name')}\nAdresse: {person.get('address')}\n"     # Die passende Datei zeigen
+                                      f"Geburtsdatum: {person.get('birthday')}\nTelefonnummer: {person.get('phone')}\n"
+                                      f"E-Mail: {person.get('email')}\n")
+                                choice_change = choice_check("Drücken Sie eine Nummer der folgenden Daten\n"
+                                                             "1.Name\n2.Adresse\n3.Geburtsdatum\n"          # Funktion aufrufen, um die Benutzerwahl zu prüfen und speichern
+                                                             "4.Telefonnummer\n5.E-Mail\n")
+                                match choice_change:
+                                    case 1:
+                                        while True:
+                                            new_name = input("Geben Sie bitte eine vollständige Name ein:\n").strip()
+                                            if is_valide(new_name, 0):                      # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                                                new_name = new_name.title()                                  # Der erste Buchstabe als groß setzen
+                                                change_data(person,new_name,"name")
+                                                break
+                                    case 2:
+                                        while True:
+                                            new_address = input("Geben Sie bitte eine vollständige Adresse ein:\n"
+                                                                "Muster (musterstraße 03, 3333 musterort)\n").strip()
+                                            if is_valide(new_address, 1):                           # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                                                change_data(person,new_address,"address")
+                                                break
+                                    case 3:
+                                        while True:
+                                            new_birthday = input("Geben Sie bitte eine vollständige Geburtsdatum ein:\n"
+                                                                 "Muster TT.MM.JJJJ\n").strip()
+                                            if is_valide_date(new_birthday):                                     # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                                                change_data(person, new_birthday, "birthday")
+                                                break
+                                    case 4:
+                                        while True:
+                                            new_phone = input("Geben Sie bitte eine Telefonnummer ein:\nMuster 0123 123456\n").strip()
+                                            if is_valide(new_phone, 2):                            # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                                                change_data(person, new_phone, "phone")
+                                                break
+                                    case 5:
+                                        while True:
+                                            new_email = input("Geben Sie bitte eine E-Mail Adresse ein:\nMuster: muster@gmail.com\n").strip()
+                                            if is_valide(new_email, 3):                           # Meine Funktion aufrufen, um die Eingabe zu prüfen
+                                                change_data(person, new_email, "email")
+                                                break
+                                    case _:
+                                        print("Ungültige Eingabe\n")
+                                        continue
+                    break
+            case 4:
                 break
-        case 4:
-            break
-        case _:
-            continue
+            case _:
+                continue
+main()
