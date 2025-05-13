@@ -99,7 +99,7 @@ def main():
                          lambda: show_data.show_person(edit_show,
                          txt_feld_dict["edit_birthday_txt"].get()),
                         2, 1, 10, 10, "w")
-    my_layout.add_button(edit_frame,"Ändern",lambda :save_data.change_data(menu_choice_edit.get(),
+    my_layout.add_button(edit_frame,"Ändern",lambda :save_data.change_data(menu_choice_edit,
                                                        txt_feld_dict["edit_birthday_txt"].get(),
                                                        txt_feld_dict["edit_txt"].get(),
                                                        error_lbl_dict["edit_input_lbl"]),
